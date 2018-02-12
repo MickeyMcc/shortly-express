@@ -38,6 +38,10 @@ var checkSession = function(req, res, next) {
   }
 };
 
+app.get('/logout', function(req, res) {
+  req.session.destroy();
+  res.render('login');
+});
 
 app.get('/', checkSession, function(req, res) {
   res.render('index');

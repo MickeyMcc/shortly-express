@@ -7,7 +7,8 @@ Shortly.Router = Backbone.Router.extend({
     '': 'index',
     'create': 'create',
     'login': 'login',
-    'signup': 'signup'
+    'signup': 'signup',
+    'logout': 'logout'
   },
 
   swapView: function(view) {
@@ -24,11 +25,11 @@ Shortly.Router = Backbone.Router.extend({
     this.swapView(new Shortly.createLinkView());
   },
 
-  login: function() {
-    this.swapView(new Shortly.createLoginView());
-  },
+  // login: function() {
+  //   this.swapView(new Shortly.createLoginView());
+  // },
 
-  signup: function() {
-    this.swapView(new Shortly.createSignupView());
-  }
+  // signup: function() {
+  //   this.swapView(new Shortly.createSignupView());
+  // }
 });
