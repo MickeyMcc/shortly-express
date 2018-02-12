@@ -34,7 +34,7 @@ var checkSession = function(req, res, next) {
   if (req.session.loggedIn === true) {
     next();
   } else {
-    res.render('login');
+    res.redirect('/login');
   }
 };
 
