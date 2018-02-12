@@ -34,15 +34,12 @@ var checkSession = function(req, res, next) {
   if (req.session.loggedIn === true) {
     next();
   } else {
-    // console.log('you cant go there');
-    //req.session.error('Access Denied');
-    res.redirect('login');
+    res.render('login');
   }
 };
 
 
 app.get('/', checkSession, function(req, res) {
-  // console.log(req.session);
   res.render('index');
 });
 
@@ -51,11 +48,11 @@ app.get('/create', checkSession, function(req, res) {
 });
 
 app.get('/login', function(req, res) {
-  res.render('index');
+  res.render('login');
 });
 
 app.get('/signup', function(req, res) {
-  res.render('index');
+  res.render('signup');
 });
 
 app.get('/links', checkSession, function(req, res) {
@@ -70,7 +67,7 @@ app.post('/signup', function(req, res) {
   new User({ username: info.username }).fetch().then(function(found) {
     if (found) {
       console.log('Username already in use.');
-      res.render('signup');
+      res.render('/signup');
     } else {
       Users.create({
         username: info.username,
