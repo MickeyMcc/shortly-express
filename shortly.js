@@ -2,6 +2,8 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var bcrypt = require('bcrypt-nodejs');
+var session = require('express-session');
 
 
 var db = require('./app/config');
@@ -21,27 +23,88 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
+app.use(session({
+  secret: 'keyboard cat',
+  cookie: { 
+    maxAge: 6000000,
+  }
+}));
+
+var checkSession = function(req, res, next) {
+  if (req.session.loggedIn === true) {
+    next();
+  } else {
+    // console.log('you cant go there');
+    //req.session.error('Access Denied');
+    res.redirect('login');
+  }
+};
 
 
-app.get('/', 
-function(req, res) {
+app.get('/', checkSession, function(req, res) {
+  // console.log(req.session);
   res.render('index');
 });
 
-app.get('/create', 
-function(req, res) {
+app.get('/create', checkSession, function(req, res) {
   res.render('index');
 });
 
-app.get('/links', 
-function(req, res) {
+app.get('/login', function(req, res) {
+  res.render('index');
+});
+
+app.get('/signup', function(req, res) {
+  res.render('index');
+});
+
+app.get('/links', checkSession, function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.status(200).send(links.models);
   });
 });
 
-app.post('/links', 
-function(req, res) {
+app.post('/signup', function(req, res) {
+  var info = req.body;
+  
+  new User({ username: info.username }).fetch().then(function(found) {
+    if (found) {
+      console.log('Username already in use.');
+      res.render('signup');
+    } else {
+      Users.create({
+        username: info.username,
+        password: info.password,
+      })
+        .then(function(newUser) {
+          req.session.loggedIn = true;
+          res.status(201).redirect('/');
+        });
+    }
+  });
+});
+
+app.post('/login', function(req, res) {
+  var info = req.body;
+
+  new User({ username: info.username }).fetch().then(function(user) {
+    if (!user) {
+      console.log('Username not found');
+      res.redirect('/login');
+    } else {
+      if (bcrypt.compareSync(info.password, user.attributes.password)) {
+        req.session.loggedIn = true;
+        res.redirect('/');
+      } else {
+        console.log('bad credentials');
+        res.redirect('/login');
+      }
+      //res.render('index');
+    }
+  });
+});
+
+app.post('/links', function(req, res) {
   var uri = req.body.url;
 
   if (!util.isValidUrl(uri)) {
@@ -64,9 +127,9 @@ function(req, res) {
           title: title,
           baseUrl: req.headers.origin
         })
-        .then(function(newLink) {
-          res.status(200).send(newLink);
-        });
+          .then(function(newLink) {
+            res.status(200).send(newLink);
+          });
       });
     }
   });
